@@ -9,7 +9,7 @@
     { "key": "base_url", "value": "http://localhost:8090" },
     { "key": "realm", "value": "gym-system" },
     { "key": "client_id", "value": "gym-app" },
-    { "key": "client_secret", "value": "PEGAR_AQUI_EL_CLIENT_SECRET" },
+    { "key": "client_secret", "value": "d3lSfEXIHbZ7CcHZ5KD35bOPq6IE7Bb5" },
     { "key": "member_username", "value": "member.test" },
     { "key": "member_password", "value": "123456" },
     { "key": "trainer_username", "value": "trainer.test" },
