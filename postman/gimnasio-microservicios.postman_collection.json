@@ -1,0 +1,293 @@
+{
+  "info": {
+    "name": "Gimnasio - Autenticacion y Autorizacion (Keycloak + JWT)",
+    "description": "Coleccion para la Actividad 6: Sistema de Gestion de Gimnasio. Incluye la obtencion de tokens por rol (MEMBER, TRAINER, ADMIN) y los 6 escenarios de prueba requeridos.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "keycloak_url", "value": "http://localhost:8280" },
+    { "key": "base_url", "value": "http://localhost:8090" },
+    { "key": "realm", "value": "gym-system" },
+    { "key": "client_id", "value": "gym-app" },
+    { "key": "client_secret", "value": "PEGAR_AQUI_EL_CLIENT_SECRET" },
+    { "key": "member_username", "value": "member.test" },
+    { "key": "member_password", "value": "123456" },
+    { "key": "trainer_username", "value": "trainer.test" },
+    { "key": "trainer_password", "value": "123456" },
+    { "key": "admin_username", "value": "admin.test" },
+    { "key": "admin_password", "value": "123456" },
+    { "key": "member_token", "value": "" },
+    { "key": "trainer_token", "value": "" },
+    { "key": "admin_token", "value": "" },
+    { "key": "booking_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "0. Autenticacion (obtener tokens)",
+      "item": [
+        {
+          "name": "Token - MEMBER",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "password" },
+                { "key": "client_id", "value": "{{client_id}}" },
+                { "key": "client_secret", "value": "{{client_secret}}" },
+                { "key": "username", "value": "{{member_username}}" },
+                { "key": "password", "value": "{{member_password}}" }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_url}}/realms/{{realm}}/protocol/openid-connect/token",
+              "host": ["{{keycloak_url}}"],
+              "path": ["realms", "{{realm}}", "protocol", "openid-connect", "token"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.collectionVariables.set('member_token', res.access_token);",
+                  "pm.test('Token de MEMBER obtenido', () => pm.expect(res.access_token).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Token - TRAINER",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "password" },
+                { "key": "client_id", "value": "{{client_id}}" },
+                { "key": "client_secret", "value": "{{client_secret}}" },
+                { "key": "username", "value": "{{trainer_username}}" },
+                { "key": "password", "value": "{{trainer_password}}" }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_url}}/realms/{{realm}}/protocol/openid-connect/token",
+              "host": ["{{keycloak_url}}"],
+              "path": ["realms", "{{realm}}", "protocol", "openid-connect", "token"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.collectionVariables.set('trainer_token', res.access_token);",
+                  "pm.test('Token de TRAINER obtenido', () => pm.expect(res.access_token).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Token - ADMIN",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "password" },
+                { "key": "client_id", "value": "{{client_id}}" },
+                { "key": "client_secret", "value": "{{client_secret}}" },
+                { "key": "username", "value": "{{admin_username}}" },
+                { "key": "password", "value": "{{admin_password}}" }
+              ]
+            },
+            "url": {
+              "raw": "{{keycloak_url}}/realms/{{realm}}/protocol/openid-connect/token",
+              "host": ["{{keycloak_url}}"],
+              "path": ["realms", "{{realm}}", "protocol", "openid-connect", "token"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.collectionVariables.set('admin_token', res.access_token);",
+                  "pm.test('Token de ADMIN obtenido', () => pm.expect(res.access_token).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1. Crear una reserva de clase (MEMBER) - espera 201",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{member_token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"trainerUsername\": \"{{trainer_username}}\",\n  \"className\": \"Spinning\",\n  \"classDate\": \"2026-08-01T10:00:00\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/bookings",
+          "host": ["{{base_url}}"],
+          "path": ["api", "bookings"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "const res = pm.response.json();",
+              "pm.collectionVariables.set('booking_id', res.id);",
+              "pm.test('memberUsername viene del token', () => pm.expect(res.memberUsername).to.eql(pm.collectionVariables.get('member_username')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Intentar ver todas las reservas (MEMBER) - espera 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{member_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/bookings",
+          "host": ["{{base_url}}"],
+          "path": ["api", "bookings"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('403 Forbidden', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Consultar las clases propias asignadas (TRAINER) - espera 200",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{trainer_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/bookings/my-classes",
+          "host": ["{{base_url}}"],
+          "path": ["api", "bookings", "my-classes"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Consultar todas las reservas (ADMIN) - espera 200",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/bookings",
+          "host": ["{{base_url}}"],
+          "path": ["api", "bookings"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Marcar una reserva como asistida (TRAINER) - espera 200",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{trainer_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/bookings/{{booking_id}}/attend",
+          "host": ["{{base_url}}"],
+          "path": ["api", "bookings", "{{booking_id}}", "attend"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const res = pm.response.json();",
+              "pm.test('Estado cambio a ATTENDED', () => pm.expect(res.status).to.eql('ATTENDED'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Eliminar una reserva (ADMIN) - espera 204",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/bookings/{{booking_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "bookings", "{{booking_id}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
